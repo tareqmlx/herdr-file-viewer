@@ -6,6 +6,17 @@
 ![herdr 0.7.4+](https://img.shields.io/badge/herdr-0.7.4%2B-8a2be2)
 ![platforms: linux • macOS • Windows (preview)](https://img.shields.io/badge/platforms-linux%20%E2%80%A2%20macOS%20%E2%80%A2%20Windows%20(preview)-informational)
 
+> **Fork notice — what this repo adds.** This is a fork of
+> [smarzban/herdr-file-viewer](https://github.com/smarzban/herdr-file-viewer). On top of the
+> upstream's split and tab layouts, this fork implements **two more ways to summon the viewer**
+> (v1.16.0): as a temporary **overlay** covering the active pane (closing it restores your previous
+> focus and zoom), and in a floating, session-modal **popup** at 90% × 85% (dismissed by exiting
+> the viewer). Concretely: two new actions (`open-file-viewer-overlay`, `open-file-viewer-popup`)
+> with their own launcher scripts, a placement marker (`HERDR_FILE_VIEWER_PLACEMENT`) so the `Z`
+> full-screen key stays in-pane where a host pane-zoom would misbehave, the herdr floor raised to
+> **0.7.4**, and tests + docs for all of it. The new layouts are Linux/macOS only for now — full
+> detail in [docs/summoning.md](docs/summoning.md).
+
 **Browse your repo without leaving your terminal session: a git-aware, read-only file viewer
 that lives in a herdr pane.** A keyboard-driven TUI with a directory tree
 on the left and, on the right, exactly the view each file deserves: a **diff** if it changed,
@@ -79,11 +90,23 @@ key = "prefix+shift+f"
 type = "plugin_action"
 command = "herdr-file-viewer.open-file-viewer-tab"
 description = "open file viewer in tab"
+
+[[keys.command]]
+key = "prefix+alt+f"
+type = "plugin_action"
+command = "herdr-file-viewer.open-file-viewer-overlay"
+description = "open file viewer as an overlay"
+
+[[keys.command]]
+key = "prefix+alt+p"
+type = "plugin_action"
+command = "herdr-file-viewer.open-file-viewer-popup"
+description = "open file viewer in a popup"
 ```
 
-Run `herdr server reload-config`, then press your key. That's the whole setup: the split-pane
-viewer and its open actions ship **inside** the plugin and register automatically on install, so
-you only add the keybinding.
+Run `herdr server reload-config`, then press your key. That's the whole setup: the viewer and its
+open actions ship **inside** the plugin and register automatically on install, so you only add the
+keybindings you want (the overlay and popup actions are Linux/macOS only and need herdr 0.7.4+).
 
 Deeper detail lives in the docs: [install & updating](docs/install.md),
 [summoning the viewer](docs/summoning.md) (split, tab, overlay, popup, the launcher, `--remote`),
