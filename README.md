@@ -3,7 +3,7 @@
 [![CI](https://github.com/smarzban/herdr-file-viewer/actions/workflows/ci.yml/badge.svg)](https://github.com/smarzban/herdr-file-viewer/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 ![Rust 1.96+](https://img.shields.io/badge/rust-1.96%2B-orange.svg)
-![herdr 0.7+](https://img.shields.io/badge/herdr-0.7%2B-8a2be2)
+![herdr 0.7.4+](https://img.shields.io/badge/herdr-0.7.4%2B-8a2be2)
 ![platforms: linux • macOS • Windows (preview)](https://img.shields.io/badge/platforms-linux%20%E2%80%A2%20macOS%20%E2%80%A2%20Windows%20(preview)-informational)
 
 **Browse your repo without leaving your terminal session: a git-aware, read-only file viewer
@@ -29,8 +29,9 @@ right into the tree. It opens beside whatever you're doing and never touches you
 - **Git at a glance.** `M`/`A`/`D`/`?` markers (colored, with the glyph as a non-color cue), a
   changed-files-only filter, and a baseline you can flip between your branch's merge-base and
   `HEAD` — all in the tree, not a separate mode.
-- **It sits beside your work.** Opens in a herdr split (or its own tab) with one keypress, and
-  toggles away just as fast. Great next to an agent, a build, or an editor.
+- **It sits beside your work.** Opens in a herdr split (or its own tab, as an overlay over the
+  active pane, or in a floating popup) with one keypress; the pane layouts toggle away just as
+  fast, and a popup closes when you exit the viewer. Great next to an agent, a build, or an editor.
 - **Safe on anything.** Read-only by construction and hardened to open *untrusted* repos (an
   agent's worktree, a fresh clone) without running repo-controlled code or letting hostile file
   content drive your terminal. See [SECURITY.md](SECURITY.md).
@@ -85,7 +86,7 @@ viewer and its open actions ship **inside** the plugin and register automaticall
 you only add the keybinding.
 
 Deeper detail lives in the docs: [install & updating](docs/install.md),
-[summoning the viewer](docs/summoning.md) (split vs. tab, the launcher, `--remote`),
+[summoning the viewer](docs/summoning.md) (split, tab, overlay, popup, the launcher, `--remote`),
 [external renderers](docs/renderers.md), and the [keys reference](docs/keys.md).
 
 ## Configuration
@@ -110,7 +111,7 @@ Native Windows is supported as a **preview** (install works the same way; the op
 Full docs live in **[docs/](docs/README.md)**:
 
 - **[Install & updating](docs/install.md)** — prebuilt vs. source, pinning a version, local-dev linking, and remote notices.
-- **[Summoning the viewer](docs/summoning.md)** — the open actions, the idempotent launcher, split vs. tab, and the `--remote` caveat.
+- **[Summoning the viewer](docs/summoning.md)** — the open actions, the idempotent launcher, the four layouts (split, tab, overlay, popup), and the `--remote` caveat.
 - **[Usage guide](docs/usage.md)** — a feature-by-feature tour of the whole viewer.
 - **[Keys & mouse](docs/keys.md)** — the complete key table, mouse gestures, and editor hand-off.
 - **[Configuration](docs/configuration.md)** — the full `config.toml` reference and `[keys]` remapping.
