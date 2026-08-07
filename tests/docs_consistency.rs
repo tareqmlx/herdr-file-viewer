@@ -109,32 +109,53 @@ fn no_documented_launch_passes_cwd_to_plugin_pane_open() {
 /// `popup`, `--width` and `--height`. Only the bare usage string and the API schema
 /// (`$defs.PluginPanePlacement`) are right, and a live probe opened all four layouts successfully.
 ///
-/// Every positive AND negative here runs against the *extracted invocation* ([`launch_blocks`] over
-/// [`code_lines`]), never the whole file: each launcher's header is required to name the flags it
-/// deliberately omits, so a whole-file `contains` negative would fail on its own documentation.
+/// The comparison is EXACT, not substring, over the *extracted invocation* ([`launch_blocks`] over
+/// [`code_lines`], never the whole file — each launcher's header names the flags it deliberately
+/// omits, so a whole-file check would trip on its own documentation). Substring checks proved too
+/// weak: `contains("--placement popup")` is satisfied by `--placement popup-bad` (which herdr
+/// rejects and `parse_placement` maps to `Unknown`), and they pinned neither `--plugin` /
+/// `--entrypoint` nor overlay's `--focus`. Exact equality also makes every rejected flag
+/// unrepresentable: `--width`/`--height` off-popup ("width and height are only supported when
+/// placement is popup"), `--target-pane`/`--workspace` on overlay or popup ("overlay and popup
+/// plugin panes target the active pane") — both `invalid_params`, exit 1, verified live. The popup
+/// sizing (90% x 85% → 147x43 on a 167-column tab area vs an unsized 80x25, against
+/// `NARROW_SPLIT = 80` in `src/presenter.rs`) is part of the pinned string.
 #[test]
 fn every_launcher_uses_the_verified_argv() {
-    // (script name, source, placement marker) — all four unix launchers. The two Windows `.ps1`
-    // launchers are deliberately absent: they don't use `plugin pane open` at all (absolute-path
-    // `pane split`/`tab create` + `pane run`, GH #58), so they carry no marker and parse as
-    // `Placement::Unknown`, which keeps today's host-zoom behaviour — correct, since what they open
-    // really is a split pane.
+    // (script name, source, exact verified invocation) — all four unix launchers. The two Windows
+    // `.ps1` launchers are deliberately absent: they don't use `plugin pane open` at all
+    // (absolute-path `pane split`/`tab create` + `pane run`, GH #58), so they carry no marker and
+    // parse as `Placement::Unknown`, which keeps today's host-zoom behaviour — correct, since what
+    // they open really is a split pane. Each `--env HERDR_FILE_VIEWER_PLACEMENT=…` value must match
+    // its `--placement`, or an overlay/popup viewer would host-zoom a pane it does not own.
     let launchers = [
-        ("scripts/open-file-viewer.sh", OPEN_PANE_SCRIPT, "split"),
-        ("scripts/open-file-viewer-tab.sh", OPEN_TAB_SCRIPT, "tab"),
+        (
+            "scripts/open-file-viewer.sh",
+            OPEN_PANE_SCRIPT,
+            "plugin pane open --plugin herdr-file-viewer --entrypoint file-viewer \
+             --placement split --direction right --focus --env HERDR_FILE_VIEWER_PLACEMENT=split",
+        ),
+        (
+            "scripts/open-file-viewer-tab.sh",
+            OPEN_TAB_SCRIPT,
+            "plugin pane open --plugin herdr-file-viewer --entrypoint file-viewer \
+             --placement tab --focus --env HERDR_FILE_VIEWER_PLACEMENT=tab",
+        ),
         (
             "scripts/open-file-viewer-overlay.sh",
             OPEN_OVERLAY_SCRIPT,
-            "overlay",
+            "plugin pane open --plugin herdr-file-viewer --entrypoint file-viewer \
+             --placement overlay --focus --env HERDR_FILE_VIEWER_PLACEMENT=overlay",
         ),
         (
             "scripts/open-file-viewer-popup.sh",
             OPEN_POPUP_SCRIPT,
-            "popup",
+            "plugin pane open --plugin herdr-file-viewer --entrypoint file-viewer \
+             --placement popup --width 90% --height 85% --env HERDR_FILE_VIEWER_PLACEMENT=popup",
         ),
     ];
 
-    for (name, script, placement) in launchers {
+    for (name, script, expected) in launchers {
         let blocks = launch_blocks(&code_lines(script));
         assert_eq!(
             blocks.len(),
@@ -142,50 +163,71 @@ fn every_launcher_uses_the_verified_argv() {
             "{name} must contain exactly one `plugin pane open` invocation (found {})",
             blocks.len()
         );
-        let argv = &blocks[0];
-
-        assert!(
-            argv.contains(&format!("--placement {placement}")),
-            "{name} must open with `--placement {placement}`: {argv}"
-        );
-        // The marker the viewer reads back (`src/host::PLACEMENT_ENV`) to decide whether `Z` may
-        // issue a host `pane zoom`. It must match the placement it is marking, or an overlay/popup
-        // viewer would zoom a pane it does not own.
-        assert!(
-            argv.contains(&format!("--env HERDR_FILE_VIEWER_PLACEMENT={placement}")),
-            "{name} must tag its argv with `--env HERDR_FILE_VIEWER_PLACEMENT={placement}`: {argv}"
-        );
-    }
-
-    let overlay = launch_blocks(&code_lines(OPEN_OVERLAY_SCRIPT)).remove(0);
-    let popup = launch_blocks(&code_lines(OPEN_POPUP_SCRIPT)).remove(0);
-
-    // Sizing is popup-only. herdr rejects it elsewhere: `invalid_params`, exit 1, "width and height
-    // are only supported when placement is popup".
-    for flag in ["--width", "--height"] {
-        assert!(
-            !overlay.contains(flag),
-            "an overlay open must not carry {flag} (herdr rejects it): {overlay}"
+        let block = &blocks[0];
+        // Strip the shell prefix (`exec "$herdr_bin" `) — the binary comes from the
+        // HERDR_BIN_PATH-or-`herdr` fallback and is not part of the verified argv.
+        let start = block
+            .find("plugin pane open")
+            .expect("launch_blocks only returns blocks containing the verb");
+        let invocation = block[start..].trim_end();
+        let expected = expected.split_whitespace().collect::<Vec<_>>().join(" ");
+        assert_eq!(
+            invocation, expected,
+            "{name} must use exactly the verified argv"
         );
     }
-    // 90% x 85% measured 147x43 on a 167-column tab area, against `NARROW_SPLIT = 80` in
-    // `src/presenter.rs`; an unsized popup (herdr's half-size default) measured 80x25 there — on the
-    // single-column boundary with nothing to spare.
-    assert!(
-        popup.contains("--width 90%") && popup.contains("--height 85%"),
-        "the popup open must carry the sized `--width 90% --height 85%`: {popup}"
-    );
+}
 
-    // Neither placement may target a pane or workspace: herdr answers `invalid_params`, exit 1,
-    // "overlay and popup plugin panes target the active pane".
-    for (name, argv) in [
-        ("scripts/open-file-viewer-overlay.sh", &overlay),
-        ("scripts/open-file-viewer-popup.sh", &popup),
+/// Any documented `plugin pane open` that chooses the overlay or popup placement must also set the
+/// matching `HERDR_FILE_VIEWER_PLACEMENT` marker in the same invocation.
+///
+/// The marker is the only signal the viewer has (a popup never gets `HERDR_PANE_ID`; a pane row
+/// carries no placement), and a markerless overlay/popup parses as `Placement::Unknown`, which
+/// keeps the host `pane zoom` active — in a popup `Z` then zooms the pane *underneath*, and in an
+/// overlay the zoom release strips the covering zoom and flattens it into a plain split. The docs
+/// first shipped teaching the marker for popup only, leaving a direct overlay launch exposed; this
+/// guard holds every documented invocation — docs and launcher scripts alike — to the rule.
+#[test]
+fn documented_overlay_and_popup_launches_carry_the_matching_marker() {
+    for (name, doc) in [
+        ("skills/herdr-file-viewer/SKILL.md", AGENT_SKILL),
+        ("docs/usage.md", USAGE_DOC),
+        ("docs/summoning.md", SUMMONING_DOC),
+        ("docs/windows.md", WINDOWS_DOC),
+        ("scripts/open-file-viewer.sh", OPEN_PANE_SCRIPT),
+        ("scripts/open-file-viewer-tab.sh", OPEN_TAB_SCRIPT),
+        ("scripts/open-file-viewer-overlay.sh", OPEN_OVERLAY_SCRIPT),
+        ("scripts/open-file-viewer-popup.sh", OPEN_POPUP_SCRIPT),
     ] {
-        for flag in ["--target-pane", "--workspace"] {
+        for block in launch_blocks(doc) {
+            for placement in ["overlay", "popup"] {
+                if block.contains(&format!("--placement {placement}")) {
+                    assert!(
+                        block.contains(&format!("HERDR_FILE_VIEWER_PLACEMENT={placement}")),
+                        "{name}: a documented `--placement {placement}` launch must also pass \
+                         `--env HERDR_FILE_VIEWER_PLACEMENT={placement}`: {block}"
+                    );
+                }
+            }
+        }
+    }
+
+    // The two agent-facing docs teach the direct launch in PROSE — their only command block is the
+    // split paste-in, so the block scan above cannot see their placement guidance. Hold the prose
+    // itself to the rule: each copy must name the marker for BOTH non-split placements, in either
+    // the full `HERDR_FILE_VIEWER_PLACEMENT=<p>` form or the abbreviated backticked `=<p>` form.
+    // (The original defect: the prose taught popup's marker but not overlay's, so an agent
+    // following it for an overlay request launched markerless and `Z` flattened the overlay.)
+    for (name, doc) in [
+        ("skills/herdr-file-viewer/SKILL.md", AGENT_SKILL),
+        ("docs/usage.md", USAGE_DOC),
+    ] {
+        for placement in ["overlay", "popup"] {
             assert!(
-                !argv.contains(flag),
-                "{name} must not carry {flag} (herdr rejects it for this placement): {argv}"
+                doc.contains(&format!("HERDR_FILE_VIEWER_PLACEMENT={placement}"))
+                    || doc.contains(&format!("`={placement}`")),
+                "{name} must teach the {placement} placement marker for direct launches \
+                 (`HERDR_FILE_VIEWER_PLACEMENT={placement}`)"
             );
         }
     }
@@ -223,13 +265,15 @@ fn the_overlay_launcher_focuses_without_the_zoom_cycle() {
     );
 }
 
-/// Every `[[actions]]` id the manifest declares is documented for users.
+/// Every `[[actions]]` id the manifest declares is documented for users — on the page that owns it.
 ///
-/// `docs/summoning.md` is the owning page, but the corpus is deliberately summoning.md **plus**
-/// `docs/windows.md`, scanned as one: that union is the actual doc split, not a loophole. The
-/// `open-file-viewer-windows` / `open-file-viewer-tab-windows` ids are documented only on the
-/// Windows page, which summoning.md links to as its annex, so scanning summoning.md alone would
-/// fail on day one. The name keeps the `summoning_doc_` prefix because summoning.md owns the topic.
+/// The corpus is split per audience, not unioned: unix ids must appear in `docs/summoning.md`
+/// itself (the owning page), and `-windows` ids in `docs/windows.md` (the annex summoning.md links
+/// to, and the only page documenting them). A union of the two would be a loophole: windows.md
+/// names the unix overlay/popup ids in a *negative* availability sentence ("there are no
+/// `-windows` variants of …"), which would satisfy a union check even with the actual usage
+/// sections deleted from summoning.md. The name keeps the `summoning_doc_` prefix because
+/// summoning.md owns the topic.
 ///
 /// Matching is whole-token, not substring: every id is a prefix of a longer one
 /// (`open-file-viewer` ⊂ `open-file-viewer-tab` ⊂ `open-file-viewer-tab-windows`), so a bare
@@ -264,12 +308,16 @@ fn summoning_doc_documents_every_open_action() {
         "expected at least the six declared [[actions]] ids (4 unix + 2 Windows), found {ids:?}"
     );
 
-    let corpus = format!("{SUMMONING_DOC}\n{WINDOWS_DOC}");
     for id in ids {
+        let (corpus, owner) = if id.ends_with("-windows") {
+            (WINDOWS_DOC, "docs/windows.md")
+        } else {
+            (SUMMONING_DOC, "docs/summoning.md")
+        };
         assert!(
-            mentions_token(&corpus, id),
-            "the `{id}` action must be documented as a whole token in docs/summoning.md or \
-             docs/windows.md — a bare substring inside a longer id does not count"
+            mentions_token(corpus, id),
+            "the `{id}` action must be documented as a whole token in {owner} — a bare substring \
+             inside a longer id (or a mention on the other audience's page) does not count"
         );
     }
 }

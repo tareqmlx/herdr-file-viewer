@@ -122,9 +122,10 @@ not shell source: prefer a structured argv or process API, or shell-escape it be
 expanding it only within double quotes.
 
 Keep `--placement split` unless the user asks for something else — a popup is session-modal and
-blocks every other surface until they exit the viewer. If you do use `--placement popup`, also pass
-`--env HERDR_FILE_VIEWER_PLACEMENT=popup`, so the viewer knows it is in a popup and not a pane;
-without that marker its `Z` full-screen key zooms the pane underneath instead.
+blocks every other surface until they exit the viewer. If you do use `--placement popup` or
+`--placement overlay`, also pass the matching `--env HERDR_FILE_VIEWER_PLACEMENT=popup` (or
+`=overlay`); the marker is what keeps `Z` in-pane there. Without it, in a popup `Z` zooms the pane
+underneath, and in an overlay releasing the zoom flattens the overlay into a plain split.
 
 The viewed root comes from the focused herdr pane's working directory (resolved to that repository's
 worktree top level), so an agent's own `cd` does not move it. To point it at a particular repository,

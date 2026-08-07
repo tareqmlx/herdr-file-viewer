@@ -100,23 +100,38 @@ fn declares_overlay_and_popup_open_actions() {
     // CLI *open* time by the launcher, exactly as the tab action already does. Each new action runs
     // its OWN script: the overlay launcher differs from the split one in its open argv *and* in its
     // FOCUS branch, and the popup launcher is open-only (a popup has no pane id to toggle).
+    //
+    // The command is asserted INSIDE the action's own table slice, not file-wide: independent
+    // whole-file `contains` checks stay green with the two `command` lines swapped between the
+    // entries — a regression that would make the overlay key open a popup and vice versa.
     let m = manifest();
-    assert!(
-        m.contains(r#"id = "open-file-viewer-overlay""#),
-        "overlay action present"
-    );
-    assert!(
-        m.contains(r#"id = "open-file-viewer-popup""#),
-        "popup action present"
-    );
-    assert!(
-        m.contains(r#"command = ["bash", "scripts/open-file-viewer-overlay.sh"]"#),
-        "overlay action runs its own launcher"
-    );
-    assert!(
-        m.contains(r#"command = ["bash", "scripts/open-file-viewer-popup.sh"]"#),
-        "popup action runs its own launcher"
-    );
+    for (id, script) in [
+        ("open-file-viewer-overlay", "open-file-viewer-overlay.sh"),
+        ("open-file-viewer-popup", "open-file-viewer-popup.sh"),
+    ] {
+        let table = action_table(&m, id);
+        let command = format!(r#"command = ["bash", "scripts/{script}"]"#);
+        assert!(
+            table.contains(&command),
+            "the `{id}` action must run its own launcher `{script}` within its own [[actions]] \
+             table, found:\n{table}"
+        );
+    }
+}
+
+/// The slice of the manifest from `id = "<id>"` to the next `[[…]]` header (or EOF) — one action's
+/// own table, so an assertion about its fields cannot be satisfied by a neighbouring entry.
+fn action_table<'a>(manifest: &'a str, id: &str) -> &'a str {
+    let id_line = format!("id = \"{id}\"");
+    let start = manifest
+        .find(&id_line)
+        .unwrap_or_else(|| panic!("action `{id}` is not declared in the manifest"));
+    let rest = &manifest[start..];
+    let end = rest[id_line.len()..]
+        .find("[[")
+        .map(|i| i + id_line.len())
+        .unwrap_or(rest.len());
+    &rest[..end]
 }
 
 #[test]
