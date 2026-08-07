@@ -146,7 +146,7 @@ Full docs live in **[docs/](docs/README.md)**:
 ## Contributing
 
 Bug reports and feature requests are very welcome — please
-[open an issue](https://github.com/smarzban/herdr-file-viewer/issues). To build, test, and send a
+[open an issue](https://github.com/tareqmlx/herdr-file-viewer/issues). To build, test, and send a
 change, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License

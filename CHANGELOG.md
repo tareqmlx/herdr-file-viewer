@@ -204,6 +204,10 @@ First public release: a git-aware, read-only file viewer that runs as a herdr pl
 ### Security
 - Read-only by construction; untrusted content is escape-neutralized and fed to renderers on stdin; every `git` invocation is hardened for untrusted repos. See [SECURITY.md](SECURITY.md).
 
+[1.16.0]: https://github.com/tareqmlx/herdr-file-viewer/releases/tag/v1.16.0
+[1.15.0]: https://github.com/smarzban/herdr-file-viewer/releases/tag/v1.15.0
+[1.14.0]: https://github.com/smarzban/herdr-file-viewer/releases/tag/v1.14.0
+[1.13.0]: https://github.com/smarzban/herdr-file-viewer/releases/tag/v1.13.0
 [1.12.0]: https://github.com/smarzban/herdr-file-viewer/releases/tag/v1.12.0
 [1.11.0]: https://github.com/smarzban/herdr-file-viewer/releases/tag/v1.11.0
 [1.10.0]: https://github.com/smarzban/herdr-file-viewer/releases/tag/v1.10.0
