@@ -45,9 +45,14 @@ terminal agent multiplexer); this plugin is built to align with it.
 
 ### Current state: BUILT & SHIPPED
 
-The plugin is fully built and shipped publicly to **`smarzban/herdr-file-viewer`**. `Cargo.toml`,
-`src/` (lib + modules + thin binary), `herdr-plugin.toml`, CI, and tagged releases all exist.
-`main` is **protected** (PR + green CI required; force-push/delete blocked).
+This checkout is the fork **`tareqmlx/herdr-file-viewer`**, which is what it ships to: releases,
+the `herdr plugin install` line in the docs, and the prebuilt lookup in `scripts/fetch-or-build.*`
+all point here. Upstream is **`smarzban/herdr-file-viewer`** — read-only, never a push/PR target.
+The one deliberate exception is the **Official Repository Gateway**, whose advisory notice stays
+pinned to the upstream repo: it is fixed-source and display-only by AC, so retargeting it is a spec
+change at the owning stage, not release work. `Cargo.toml`, `src/` (lib + modules + thin binary),
+`herdr-plugin.toml`, and CI all exist; `main` here is **not** branch-protected, but releases still
+go through a PR so CI is green before the tag.
 
 ### Architecture (the big picture)
 

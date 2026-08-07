@@ -5,7 +5,7 @@ All notable changes to this project are documented here. The format is based on
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Entries are short on purpose; follow the
 `→` links for the full detail.
 
-## [1.16.0] - 2026-08-07
+## [1.16.0] - 2026-08-08
 
 ### Added
 - Two more ways to summon the viewer, alongside the split and tab actions. `open-file-viewer-overlay` opens it as a temporary overlay over the active pane; closing it restores the previous focus and zoom. `open-file-viewer-popup` opens it in a floating, session-modal popup at 90% × 85% of the terminal — big enough to stay two-column. Both are Linux/macOS only in this release. → [summoning](docs/summoning.md)
@@ -13,6 +13,8 @@ All notable changes to this project are documented here. The format is based on
 
 ### Changed
 - Minimum herdr version is now **0.7.4** (was 0.7.0). Session-modal popups for plugins, with cell/percentage sizing, arrived in that release, so it is the honest floor now that the popup layout ships; overlay alone would have needed no bump. → [install](docs/install.md)
+- This fork publishes its own releases, so install it as `herdr plugin install tareqmlx/herdr-file-viewer`. The prebuilt lookup in `scripts/fetch-or-build.sh` / `.ps1` now resolves against this repo's releases rather than the upstream's — otherwise an install of this fork would fall back to a source build today and silently fetch the upstream's binary (which has no overlay or popup) the day it publishes its own v1.16.0. → [install](docs/install.md)
+- The `?` About screen names this fork's repository. The advisory update notice and the star call-to-action are unchanged: they stay pinned to the upstream official repository, which is a separate fixed source. → [usage](docs/usage.md)
 - `Z` skips the herdr pane zoom under the new overlay and popup layouts — an overlay already covers the terminal, and a popup has no pane of its own to zoom — so there it is the in-pane full-screen only. Split and tab are unchanged. → [keys](docs/keys.md)
 
 ### Fixed

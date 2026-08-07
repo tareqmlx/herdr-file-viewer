@@ -489,9 +489,12 @@ mod tests {
             text.contains(env!("CARGO_PKG_DESCRIPTION")),
             "about_text must contain the package description (AC-17)"
         );
-        // The repo URL is rendered BARE — host+path only, the https:// scheme stripped.
+        // The repo URL is rendered BARE — host+path only, the https:// scheme stripped. The slug is
+        // this fork's (Cargo.toml `repository`), which is where this build's releases come from; the
+        // update notice and star CTA keep pointing at the upstream official repository, which has
+        // its own pinned constant (`crate::update::OFFICIAL_REPOSITORY_URL`) and is not this field.
         assert!(
-            text.contains("github.com/smarzban/herdr-file-viewer"),
+            text.contains("github.com/tareqmlx/herdr-file-viewer"),
             "about_text must contain the bare repository URL (AC-17)"
         );
         assert!(
