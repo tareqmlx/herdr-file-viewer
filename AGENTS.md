@@ -279,10 +279,16 @@ assignment for every scalar `Config` field — keep its key list in lockstep wit
    `herdr-plugin.toml`. Versioning: **minor per additive feature**, major only on a breaking change
    or a flagship feature.
 2. Add the `## [X.Y.Z] - DATE` `CHANGELOG.md` entry (Keep-a-Changelog `Added`/`Changed`/`Fixed`,
-   omit empty sections; keep bullets terse and credit external contributors `Thanks @user (#NN)`).
+   omit empty sections; keep bullets terse). **No `@mentions` and no bare `#NN` issue refs in an
+   entry this fork authors.** The section becomes the GitHub release body verbatim (below), and
+   GitHub resolves both against THIS repo: a `#NN` inherited from upstream links to an issue number
+   that does not exist here, and an `@mention` notifies someone who had no part in this release.
+   Describe the change; if a source must be named, spell it out in prose. Upstream's older entries
+   keep the credits they shipped with — that is their attribution record, not ours to rewrite.
    **The CHANGELOG section IS the release notes** (single source of truth) — never author them
    separately, or the two drift. Show the owner the section before posting.
-3. Protected `main` → bump via a **`release/vX.Y.Z` PR** → green CI → merge.
+3. Bump via a **`release/vX.Y.Z` PR** → green CI → merge. (`main` is not branch-protected on this
+   fork; the PR is still how CI gets a chance to run before the tag.)
 4. **Tag `vX.Y.Z` AT the merge commit** (`git tag -a vX.Y.Z <merge-sha>` → push) so a bare
    `herdr plugin install`'s tagless-clone `HEAD` matches the published `COMMIT` asset. The tag push
    triggers `release.yml` (builds **4 binaries** — Linux musl, macOS arm64 + x86_64, Windows `.exe` —
@@ -291,7 +297,12 @@ assignment for every scalar `Config` field — keep its key list in lockstep wit
    drift from the changelog): extract this tag's `## [X.Y.Z]` block, drop the trailing `→ [docs]`
    pointers (a release note is a self-contained, pinned artifact), append a
    `**Full changelog:** <repo>/compare/vPREV...vX.Y.Z` line, then
-   `gh release edit vX.Y.Z --notes-file <f>`. Extract with e.g.
+   `gh release edit vX.Y.Z --notes-file <f>`. **Resolve that compare URL before pasting it** — a
+   base ref this fork has never tagged 404s. Where the previous version was only ever released
+   upstream, the cross-fork form resolves and is the more useful link anyway, since it shows exactly
+   what this fork adds:
+   `https://github.com/smarzban/herdr-file-viewer/compare/vPREV...tareqmlx:herdr-file-viewer:vX.Y.Z`.
+   Extract with e.g.
    `awk '/^## \[X.Y.Z\]/{f=1;next} f&&/^## \[/{exit} f' CHANGELOG.md`.
 6. **Verify**: `gh release view vX.Y.Z` shows **6 assets** (4 binaries + `SHA256SUMS` + `COMMIT`),
    not draft/prerelease.
