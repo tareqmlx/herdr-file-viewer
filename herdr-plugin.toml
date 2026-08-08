@@ -32,7 +32,7 @@
 
 id = "herdr-file-viewer"
 name = "herdr-file-viewer"
-version = "1.16.0"
+version = "1.17.0"
 description = "A git-aware, read-only file viewer: a keyboard-driven TUI that opens as a split, tab, or overlay pane, or in a floating popup."
 min_herdr_version = "0.7.4"
 platforms = ["linux", "macos", "windows"]

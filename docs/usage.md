@@ -354,10 +354,15 @@ border so the overlay is discoverable without already knowing the key.
 
 ## Staying up to date
 
-The viewer can show an advisory status row for a newer release or project spotlight. `?` opens
-**What's New** first; `u` dismisses the whole advisory status row for this session only. It is
-display-only and never installs, opens, or copies anything. Control remote notices with
+The viewer can show an advisory status row when a newer release exists. It checks
+[this repository](https://github.com/tareqmlx/herdr-file-viewer) — the one the running build was
+released from — at most once per 24h, never blocks the viewer, and stays quiet when you are offline.
+`?` opens **What's New** first; `u` dismisses the whole advisory status row for this session only.
+It is display-only and never installs, opens, or copies anything. Control remote notices with
 [`update_check`](configuration.md).
+
+Project spotlights are part of this machinery but this repository publishes none, so none appear.
+Nothing is lost when a document is absent: the check simply shows nothing for it.
 
 ## Using the mouse
 
