@@ -5,6 +5,14 @@ All notable changes to this project are documented here. The format is based on
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Entries are short on purpose; follow the
 `→` links for the full detail.
 
+## [1.17.0] - 2026-08-08
+
+### Changed
+- The once-a-day update check now tracks **this fork's** releases instead of the upstream's. The advisory status row, the `?` What's New release details, and the install guidance all describe a version you can actually install from here; before this, a fork build reported on releases it did not ship. The queried address is still a single compile-time constant — it is now taken from `Cargo.toml`'s `repository`, so the gateway and the `?` About screen cannot name different repositories. → [install](docs/install.md) · [usage](docs/usage.md)
+- Project spotlights no longer appear. The spotlight document is fetched from the repository the update check follows, and this fork does not publish one; the missing-document path is silent by design, so nothing is shown and nothing errors. Everything else in What's New — release details and the full embedded history — is unaffected. → [usage](docs/usage.md)
+
+**Unchanged:** the check remains off-by-request via `update_check = false` or `HERDR_FILE_VIEWER_NO_UPDATE_CHECK`, still makes no request when disabled, still sends nothing beyond an ordinary HTTPS GET, and still writes only the safe-to-delete `update-check.json` cache. → [configuration](docs/configuration.md)
+
 ## [1.16.0] - 2026-08-08
 
 ### Added
@@ -13,7 +21,7 @@ All notable changes to this project are documented here. The format is based on
 
 ### Changed
 - Minimum herdr version is now **0.7.4** (was 0.7.0). Session-modal popups for plugins, with cell/percentage sizing, arrived in that release, so it is the honest floor now that the popup layout ships; overlay alone would have needed no bump. → [install](docs/install.md)
-- This fork publishes its own releases, so install it as `herdr plugin install tareqmlx/herdr-file-viewer`. The prebuilt lookup in `scripts/fetch-or-build.sh` / `.ps1` now resolves against this repo's releases rather than the upstream's — otherwise an install of this fork would fall back to a source build today and silently fetch the upstream's binary (which has no overlay or popup) the day it publishes its own v1.16.0. → [install](docs/install.md)
+- This fork publishes its own releases, so install it from this repository rather than the upstream's. The prebuilt lookup in `scripts/fetch-or-build.sh` / `.ps1` now resolves against this repo's releases rather than the upstream's — otherwise an install of this fork would fall back to a source build today and silently fetch the upstream's binary (which has no overlay or popup) the day it publishes its own v1.16.0. → [install](docs/install.md)
 - The `?` About screen names this fork's repository. The advisory update notice and the star call-to-action are unchanged: they stay pinned to the upstream official repository, which is a separate fixed source. → [usage](docs/usage.md)
 - `Z` skips the herdr pane zoom under the new overlay and popup layouts — an overlay already covers the terminal, and a popup has no pane of its own to zoom — so there it is the in-pane full-screen only. Split and tab are unchanged. → [keys](docs/keys.md)
 
@@ -204,6 +212,7 @@ First public release: a git-aware, read-only file viewer that runs as a herdr pl
 ### Security
 - Read-only by construction; untrusted content is escape-neutralized and fed to renderers on stdin; every `git` invocation is hardened for untrusted repos. See [SECURITY.md](SECURITY.md).
 
+[1.17.0]: https://github.com/tareqmlx/herdr-file-viewer/releases/tag/v1.17.0
 [1.16.0]: https://github.com/tareqmlx/herdr-file-viewer/releases/tag/v1.16.0
 [1.15.0]: https://github.com/smarzban/herdr-file-viewer/releases/tag/v1.15.0
 [1.14.0]: https://github.com/smarzban/herdr-file-viewer/releases/tag/v1.14.0

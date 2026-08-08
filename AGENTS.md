@@ -48,9 +48,13 @@ terminal agent multiplexer); this plugin is built to align with it.
 This checkout is the fork **`tareqmlx/herdr-file-viewer`**, which is what it ships to: releases,
 the `herdr plugin install` line in the docs, and the prebuilt lookup in `scripts/fetch-or-build.*`
 all point here. Upstream is **`smarzban/herdr-file-viewer`** — read-only, never a push/PR target.
-The one deliberate exception is the **Official Repository Gateway**, whose advisory notice stays
-pinned to the upstream repo: it is fixed-source and display-only by AC, so retargeting it is a spec
-change at the owning stage, not release work. `Cargo.toml`, `src/` (lib + modules + thin binary),
+Nothing points upstream any more, including the **Official Repository Gateway**: as of v1.17.0 its
+advisory notice tracks THIS repo's releases. It stays fixed-source and display-only — the property
+that matters is that the queried URL is a compile-time constant, never runtime-controlled, and it
+still is: `OFFICIAL_REPOSITORY_URL` is `env!("CARGO_PKG_REPOSITORY")`, so the gateway and the `?`
+About screen cannot name different repositories. `update::tests::repo_slug_is_owner_repo` pins the
+derived slug to a literal, so a `Cargo.toml` edit that silently repoints the update check fails
+there first. `Cargo.toml`, `src/` (lib + modules + thin binary),
 `herdr-plugin.toml`, and CI all exist; `main` here is **not** branch-protected, but releases still
 go through a PR so CI is green before the tag.
 

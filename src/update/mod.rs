@@ -30,7 +30,12 @@ const REFRESH_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(15);
 pub const DISABLE_ENV: &str = "HERDR_FILE_VIEWER_NO_UPDATE_CHECK";
 
 /// The only authority the public-source gateway may query (and the source of [`repo_slug`]).
-const OFFICIAL_REPOSITORY_URL: &str = "https://github.com/smarzban/herdr-file-viewer";
+///
+/// Taken from `Cargo.toml`'s `repository`, so this fork's build tracks this fork's releases and the
+/// `?` About screen can never name a different repository than the one actually queried. `env!` is
+/// resolved at compile time, so the "one fixed source, never runtime-controlled" property that makes
+/// this gateway safe is unchanged — this is a build-time constant like the literal it replaced.
+const OFFICIAL_REPOSITORY_URL: &str = env!("CARGO_PKG_REPOSITORY");
 
 /// The fixed official repository HTTPS URL.
 pub fn repo_url() -> &'static str {
@@ -722,8 +727,11 @@ mod tests {
 
     #[test]
     fn repo_slug_is_owner_repo() {
-        // Derived from CARGO_PKG_REPOSITORY so it stays correct if the repo moves.
-        assert_eq!(repo_slug(), "smarzban/herdr-file-viewer");
+        // Derived from CARGO_PKG_REPOSITORY so it stays correct if the repo moves. Pinned to a
+        // literal here on purpose: the derivation is what keeps the gateway and the About screen
+        // agreeing, and this is the one place that says which repository they agree ON. A
+        // `Cargo.toml` edit that silently repoints the update check has to fail here first.
+        assert_eq!(repo_slug(), "tareqmlx/herdr-file-viewer");
     }
 
     #[test]
