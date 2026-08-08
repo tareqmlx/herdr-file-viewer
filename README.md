@@ -16,6 +16,12 @@
 > full-screen key stays in-pane where a host pane-zoom would misbehave, the herdr floor raised to
 > **0.7.4**, and tests + docs for all of it. The new layouts are Linux/macOS only for now — full
 > detail in [docs/summoning.md](docs/summoning.md).
+>
+> **This repo exists mostly for personal use.** It is published so the build is installable and the
+> changes are readable, not as a competing distribution. Since v1.17.0 it also releases its own
+> binaries and points its update check here rather than upstream. You are welcome to use it, but
+> expect it to follow what I need rather than a roadmap — for the maintained project, go
+> [upstream](https://github.com/smarzban/herdr-file-viewer).
 
 **Browse your repo without leaving your terminal session: a git-aware, read-only file viewer
 that lives in a herdr pane.** A keyboard-driven TUI with a directory tree
